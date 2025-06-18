@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Fonemas - Teste</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #f39c12;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2.5em;
+            color: #f39c12;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        .question {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .alternatives {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .alt {
+            background: #34495e;
+            border: 2px solid #f39c12;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .alt:hover {
+            background: #f39c12;
+            color: #2c3e50;
+        }
+        
+        .correct { background: #27ae60 !important; }
+        .incorrect { background: #e74c3c !important; }
+        
+        .btn {
+            background: #f39c12;
+            color: #2c3e50;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .hidden { display: none; }
+        
+        .feedback {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success { background: rgba(39, 174, 96, 0.3); }
+        .error { background: rgba(231, 76, 60, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela inicial -->
+        <div id="start">
+            <h1 class="title">⚔️ RPG dos Fonemas</h1>
+            <p style="text-align: center; font-size: 1.2em;">Prof. Paulo Bispo - "Educar com amor, inovar com paixão"</p>
+            
+            <div style="margin: 30px 0; text-align: center;">
+                <input type="text" id="nome" placeholder="Nome do herói" style="padding: 10px; margin: 10px; border-radius: 5px; border: none; font-size: 1em;">
+                <select id="serie" style="padding: 10px; margin: 10px; border-radius: 5px; border: none; font-size: 1em;">
+                    <option value="">Selecione sua série</option>
+                    <option value="6º Ano">6º Ano</option>
+                    <option value="7º Ano">7º Ano</option>
+                    <option value="8º Ano">8º Ano</option>
+                    <option value="9º Ano">9º Ano</option>
+                </select>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="iniciar()">🚀 Começar Aventura</button>
+            </div>
+        </div>
+        
+        <!-- Tela do jogo -->
+        <div id="game" class="hidden">
+            <h2 class="title">⚔️ Batalha em Curso</h2>
+            
+            <div class="status">
+                <div>❤️ Vida: <span id="vida">100</span>/100</div>
+                <div>⭐ Nível: <span id="nivel">1</span></div>
+                <div>🏆 XP: <span id="xp">0</span></div>
+                <div>📊 Acertos: <span id="acertos">0</span></div>
+            </div>
+            
+            <div class="question">
+                <h3 id="inimigo">🧌 Orc dos Dígrafos te desafia!</h3>
+                <p id="pergunta">Carregando pergunta...</p>
+            </div>
+            
+            <div class="alternatives" id="alternativas">
+                <!-- Alternativas aparecerão aqui -->
+            </div>
+            
+            <div id="feedback" class="feedback hidden"></div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="curar()" id="btnCura">💚 Curar (20 Mana)</button>
+                <button class="btn" onclick="proximaPergunta()" id="btnProxima" class="hidden">➡️ Próxima Batalha</button>
+            </div>
+        </div>
+        
+        <!-- Tela de resultado -->
+        <div id="resultado" class="hidden">
+            <h2 class="title">🏆 Aventura Completa!</h2>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <div style="font-size: 1.5em; margin: 10px;">👤 <span id="nomeHeroi"></span></div>
+                <div style="font-size: 1.2em; margin: 10px;">🎓 <span id="serieHeroi"></span></div>
+                <div style="font-size: 2em; color: #f39c12; margin: 20px;">🏆 <span id="xpFinal">0</span> XP</div>
+                <div style="font-size: 1.3em; margin: 10px;">📊 <span id="acertosFinal">0</span> acertos de <span id="totalPerguntas">10</span></div>
+                <div style="font-size: 1.2em; margin: 10px;">🎯 <span id="precisao">0</span>% de precisão</div>
+            </div>
+            
+            <div id="mensagem" style="background: rgba(243, 156, 18, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;"></div>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f39c12; font-size: 0.9em; color: #bdc3c7;">
+                Prof. Paulo Bispo - Língua Portuguesa<br>
+                "Educar com amor, inovar com paixão"<br>
+                📅 <span id="data"></span>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="reiniciar()">🔄 Nova Aventura</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Perguntas simples para teste
+        const perguntas = [
+            {
+                pergunta: "Quantos fonemas tem a palavra CASA?",
+                alternativas: ["3", "4", "5", "2"],
+                correta: 1,
+                explicacao: "CASA tem 4 fonemas: /k/ /a/ /z/ /a/"
+            },
+            {
+                pergunta: "Qual palavra tem dígrafo?",
+                alternativas: ["mesa", "carro", "gato", "azul"],
+                correta: 1,
+                explicacao: "CARRO tem o dígrafo RR"
+            },
+            {
+                pergunta: "O que são fonemas?",
+                alternativas: ["Letras", "Sons da fala", "Sílabas", "Palavras"],
+                correta: 1,
+                explicacao: "Fonemas são os sons da fala"
+            },
+            {
+                pergunta: "A palavra FILHO tem qual dígrafo?",
+                alternativas: ["FI", "LH", "HO", "IL"],
+                correta: 1,
+                explicacao: "FILHO tem o dígrafo LH"
+            },
+            {
+                pergunta: "Quantas vogais existem?",
+                alternativas: ["4", "5", "6", "7"],
+                correta: 1,
+                explicacao: "Existem 5 vogais: A, E, I, O, U"
+            }
+        ];
+        
+        let perguntaAtual = 0;
+        let vida = 100;
+        let xp = 0;
+        let acertos = 0;
+        let nivel = 1;
+        let mana = 100;
+        let nome = "";
+        let serie = "";
+        
+        function iniciar() {
+            nome = document.getElementById('nome').value.trim();
+            serie = document.getElementById('serie').value;
+            
+            if (!nome || !serie) {
+                alert('Preencha nome e série!');
+                return;
+            }
+            
+            document.getElementById('start').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+            
+            mostrarPergunta();
+        }
+        
+        function mostrarPergunta() {
+            if (perguntaAtual >= perguntas.length) {
+                finalizarJogo();
+                return;
+            }
+            
+            const p = perguntas[perguntaAtual];
+            document.getElementById('pergunta').textContent = p.pergunta;
+            
+            const container = document.getElementById('alternativas');
+            container.innerHTML = '';
+            
+            p.alternativas.forEach((alt, index) => {
+                const div = document.createElement('div');
+                div.className = 'alt';
+                div.textContent = `${String.fromCharCode(65 + index)}) ${alt}`;
+                div.onclick = () => responder(index);
+                container.appendChild(div);
+            });
+            
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('btnProxima').classList.add('hidden');
+        }
+        
+        function responder(escolha) {
+            const p = perguntas[perguntaAtual];
+            const alts = document.querySelectorAll('.alt');
+            
+            // Desabilitar cliques
+            alts.forEach(alt => alt.style.pointerEvents = 'none');
+            
+            // Marcar correta e incorreta
+            alts[p.correta].classList.add('correct');
+            if (escolha !== p.correta) {
+                alts[escolha].classList.add('incorrect');
+            }
+            
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('hidden');
+            
+            if (escolha === p.correta) {
+                acertos++;
+                xp += 50;
+                feedback.textContent = `✅ Correto! ${p.explicacao}`;
+                feedback.className = 'feedback success';
+                
+                // Verificar level up
+                if (xp >= nivel * 100) {
+                    nivel++;
+                    vida = 100; // Cura completa
+                    alert(`🌟 Level Up! Nível ${nivel}!`);
+                }
+            } else {
+                vida -= 20;
+                feedback.textContent = `❌ Errado! ${p.explicacao}`;
+                feedback.className = 'feedback error';
+                
+                if (vida <= 0) {
+                    alert('💀 Game Over!');
+                    finalizarJogo();
+                    return;
+                }
+            }
+            
+            atualizarStatus();
+            document.getElementById('btnProxima').classList.remove('hidden');
+        }
+        
+        function proximaPergunta() {
+            perguntaAtual++;
+            mostrarPergunta();
+        }
+        
+        function curar() {
+            if (mana >= 20) {
+                mana -= 20;
+                vida = Math.min(100, vida + 30);
+                atualizarStatus();
+                alert('💚 Curou 30 de vida!');
+            } else {
+                alert('💙 Mana insuficiente!');
+            }
+        }
+        
+        function atualizarStatus() {
+            document.getElementById('vida').textContent = vida;
+            document.getElementById('nivel').textContent = nivel;
+            document.getElementById('xp').textContent = xp;
+            document.getElementById('acertos').textContent = acertos;
+        }
+        
+        function finalizarJogo() {
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('resultado').classList.remove('hidden');
+            
+            const precisao = Math.round((acertos / perguntas.length) * 100);
+            
+            document.getElementById('nomeHeroi').textContent = nome;
+            document.getElementById('serieHeroi').textContent = serie;
+            document.getElementById('xpFinal').textContent = xp;
+            document.getElementById('acertosFinal').textContent = acertos;
+            document.getElementById('totalPerguntas').textContent = perguntas.length;
+            document.getElementById('precisao').textContent = precisao;
+            document.getElementById('data').textContent = new Date().toLocaleDateString('pt-BR');
+            
+            let mensagem = '';
+            if (precisao >= 80) {
+                mensagem = `🌟 Excelente, ${nome}! Você dominou os fonemas!`;
+            } else if (precisao >= 60) {
+                mensagem = `👏 Bom trabalho, ${nome}! Continue praticando!`;
+            } else {
+                mensagem = `📚 Continue estudando, ${nome}! Você vai conseguir!`;
+            }
+            
+            document.getElementById('mensagem').textContent = mensagem;
+        }
+        
+        function reiniciar() {
+            perguntaAtual = 0;
+            vida = 100;
+            xp = 0;
+            acertos = 0;
+            nivel = 1;
+            mana = 100;
+            
+            document.getElementById('nome').value = '';
+            document.getElementById('serie').value = '';
+            
+            document.getElementById('resultado').classList.add('hidden');
+            document.getElementById('start').classList.remove('hidden');
+        }
+        
+        // Regeneração de mana
+        setInterval(() => {
+            if (mana < 100) {
+                mana = Math.min(100, mana + 5);
+            }
+        }, 3000);
+        
+        console.log('RPG Teste carregado! 🎮');
+    </script>
+</body>
+</html>
